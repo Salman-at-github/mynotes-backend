@@ -44,11 +44,14 @@ router.post('/signup',
         await otpStatus.remove();
         res.status(201).json({ success: true, message: "User created!", user: userCreated });
       } else if (otpStatus && !otpStatus.verified) {
-        sendErrorResponse(res, 401, "OTP not verified earlier. Please enter your email and verify the OTP");
+        return sendErrorResponse(res, 401, "OTP not verified earlier. Please enter your email and verify the OTP");
       } else {
-        sendErrorResponse(res, 401, "No OTP sent");
+        return sendErrorResponse(res, 401, "No OTP sent");
       }
-
+  
+      // Add return statement here to terminate the function
+      return;
+  
     } catch (error) {
       console.error(error.message);
       sendErrorResponse(res, 500, "Internal Server Error");
@@ -100,6 +103,7 @@ router.post('/sendotp', async (req, res) => {
     if (!foundUser) {
       const gotOTP = generateOTP();
       await sendOTP(email, gotOTP);
+      await OTPModel.create({email: email, OTP: gotOTP})
       res.status(200).json({ success: true, message: "OTP sent successfully!" });
 
     } else {
