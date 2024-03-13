@@ -3,44 +3,36 @@ const app = express();
 const cors = require('cors');
 const mongoose = require('mongoose');
 const connectToMongo = require('./db');
+const createRateLimiter = require('./middleware/rateLimiter');
 
 require('dotenv').config();
 
 connectToMongo();
 
-// Read allowed origins from environment variable
-const frontendHosts = process.env.FRONTEND_HOST || 'http://localhost:3000';
-
-// Split the comma-separated string into an array
-const whitelist = frontendHosts.split(',');
-console.log(whitelist)
-
-// // Configure CORS options
-// const corsOptions = {
-//   origin: (origin, callback) => {
-//     if (whitelist.indexOf(origin) !== -1 || !origin) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-// };
-
+const whitelist = process.env.FRONTEND_HOST || 'http://localhost:3000';
 const corsOptionsDelegate = function (req, callback) {
   let corsOptions;
   if (whitelist.indexOf(req.header('Origin')) !== -1) {
-    corsOptions = { origin: true } // reflect (enable) the requested origin in the CORS response
+    corsOptions = { origin: true };
   } else {
-    corsOptions = { origin: false } // disable CORS for this request
+    corsOptions = { origin: false };
   }
-  callback(null, corsOptions) // callback expects two parameters: error and options
+  callback(null, corsOptions);
 }
 
 app.use(cors(corsOptionsDelegate));
 app.use(express.json());
-mongoose.set('strictQuery', true);
+mongoose.set('strictQuery', false);
 
+
+// Specific rate limiter for '/api/auth' with a different configuration
+const authRateLimiter = createRateLimiter(1, 5, "You have exceeded your 5 requests per minute limit for authentication.");
+app.use('/api/auth', authRateLimiter);
 app.use('/api/auth', require('./routes/auth'));
+
+// Specific rate limiter for '/api/notes' with a different configuration
+const notesRateLimiter = createRateLimiter(1, 10, "You have exceeded your 10 requests per minute limit for notes operations.");
+app.use('/api/notes', notesRateLimiter);
 app.use('/api/notes', require('./routes/notesroute'));
 
 app.get('/', (req, res) => {

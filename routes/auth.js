@@ -46,7 +46,7 @@ router.post('/signup',
       } else if (otpStatus && !otpStatus.verified) {
         return sendErrorResponse(res, 401, "OTP not verified earlier. Please enter your email and verify the OTP");
       } else {
-        return sendErrorResponse(res, 401, "No OTP sent");
+        return sendErrorResponse(res, 401, "No OTP sent. Please send OTP first.");
       }
   
       // Add return statement here to terminate the function
