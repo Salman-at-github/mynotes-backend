@@ -4,7 +4,7 @@ const userModel = require('../models/User');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const fetchUser = require('../middleware/fetchUser');
+const decodeUser = require('../middleware/decodeUser');
 const OTPModel = require('../models/OTP');
 const { generateOTP, sendOTP } = require('../utils/helpers');
 
@@ -137,8 +137,8 @@ router.post('/verifyotp', async (req, res) => {
   }
 });
 
-router.get('/user/getdetails',fetchUser, async(req,res)=>{
-        const {id} = req.user; //form fetchUser mwr
+router.get('/user/getdetails',decodeUser, async(req,res)=>{
+        const {id} = req.user; //form decodeUser mwr
         try {
             const foundUser = await userModel.findOne({_id:id}).select("-password");
             if(! foundUser){

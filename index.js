@@ -33,7 +33,7 @@ app.use('/api/auth', require('./routes/auth'));
 // Specific rate limiter for '/api/notes' with a different configuration
 const notesRateLimiter = createRateLimiter(1, 10, "You have exceeded your 10 requests per minute limit for notes operations.");
 app.use('/api/notes', notesRateLimiter);
-app.use('/api/notes', require('./routes/notesroute'));
+app.use('/api/notes', require('./routes/notes'));
 
 app.get('/', (req, res) => {
   res.send("We are connected to localhost");
