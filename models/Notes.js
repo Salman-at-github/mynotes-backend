@@ -17,12 +17,18 @@ const NotesSchema = new Schema({
     },
     tag:{
         type: String,
-        default: "General"
     },
     date:{
         type: Date,
         default: Date.now
     }
+},
+{
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
+NotesSchema.index({ title: 'text', description: 'text', tag: 'text' }, { weights: { title: 2, description: 1, tag: 0.5 } });
+ // Full-text search index
 module.exports = mongoose.model('notes', NotesSchema);
+

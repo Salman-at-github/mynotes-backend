@@ -89,4 +89,35 @@ const deleteNote =  async (req, res) => {
       console.error(error.message);
   };
 }
-  module.exports = {getNotes, addNote, updateNote, deleteNote};
+
+const searchNotes = async (req, res) => {
+  try {
+    const { q = '', fields = [], fromDate, toDate, page = 1, limit = 10 } = req.query;
+    const user = req.user.id; // Access user ID from middleware
+
+    let searchQuery = {user: user};
+    if (q) {
+      // Full-text search using $text operator
+      searchQuery.$text = { $search: q };
+    }
+
+
+    searchQuery.user = user; // Filter notes for the current user
+
+    const totalResults = await Notes.countDocuments(searchQuery);
+    const skip = (page - 1) * limit; // Calculate skip for pagination
+
+    const notes = await Notes.find(searchQuery, { score: { $meta: "textScore" } }) // Include score for sorting
+      .sort({ score: { $meta: "textScore" } }) // Sort by relevance (higher score first)
+      .skip(skip)
+      .limit(limit);
+
+    res.json({ notes, totalResults }); // Include total results for pagination display
+  } catch (error) {
+    console.error('Error in searching notes:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+  module.exports = {getNotes, addNote, updateNote, deleteNote, searchNotes};

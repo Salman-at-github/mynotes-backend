@@ -27,13 +27,13 @@ mongoose.set('strictQuery', false);
 
 // Specific rate limiter for '/api/auth' with a different configuration
 const authRateLimiter = createRateLimiter(1, 5, "You have exceeded your 5 requests per minute limit for authentication.");
-app.use('/api/auth', authRateLimiter);
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/v1/auth', authRateLimiter);
+app.use('/api/v1/auth', require('./routes/auth'));
 
 // Specific rate limiter for '/api/notes' with a different configuration
-const notesRateLimiter = createRateLimiter(1, 10, "You have exceeded your 10 requests per minute limit for notes operations.");
-app.use('/api/notes', notesRateLimiter);
-app.use('/api/notes', require('./routes/notes'));
+const notesRateLimiter = createRateLimiter(1, 20, "You have exceeded your 20 requests per minute limit for notes operations.");
+app.use('/api/v1/notes', notesRateLimiter);
+app.use('/api/v1/notes', require('./routes/notes'));
 
 app.get('/', (req, res) => {
   res.send("We are connected to localhost");
