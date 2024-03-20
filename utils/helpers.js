@@ -41,9 +41,14 @@ const generateOTP = () => {
   
         return success
   };
+
+  const sendErrorResponse = (res, statusCode, error) => {
+    res.status(statusCode).json({ success: false, error: error.message || error });
+  };
   
 
 module.exports = {
     generateOTP,
-    sendOTP
+    sendOTP,
+    sendErrorResponse
 }
