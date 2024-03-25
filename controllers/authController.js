@@ -14,7 +14,7 @@ const signUp = async (req, res) => {
 
       const match = await userModel.findOne({ email: req.body.email });
       if (match) {
-        return sendErrorResponse(res, 400, "A user with the same email already exists. Please use a different one.");
+        return sendErrorResponse(res, 409, "A user with the same email already exists. Please use a different one.");
       }
 
       const otpStatus = await OTPModel.findOne({ email: req.body.email });

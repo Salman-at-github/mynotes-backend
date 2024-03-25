@@ -25,7 +25,7 @@ app.use(express.json());
 mongoose.set('strictQuery', false);
 
 // Specific rate limiter for '/api/auth' with a different configuration
-const authRateLimiter = createRateLimiter(1, 5, "You have exceeded your 5 requests per minute limit for authentication.");
+const authRateLimiter = createRateLimiter(1, 500, "You have exceeded your 5 requests per minute limit for authentication.");
 app.use('/api/v1/auth', authRateLimiter);
 app.use('/api/v1/auth', require('./routes/auth'));
 
