@@ -1,11 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const mongoose = require('mongoose');
-const connectToMongo = require('./db');
 const createRateLimiter = require('./middleware/rateLimiter');
 
-require('dotenv').config();
+const mongoose = require('mongoose');
+const connectToMongo = require('./db');
 
 connectToMongo();
 
@@ -24,7 +24,6 @@ app.use(cors(corsOptionsDelegate));
 app.use(express.json());
 mongoose.set('strictQuery', false);
 
-
 // Specific rate limiter for '/api/auth' with a different configuration
 const authRateLimiter = createRateLimiter(1, 5, "You have exceeded your 5 requests per minute limit for authentication.");
 app.use('/api/v1/auth', authRateLimiter);
@@ -39,8 +38,4 @@ app.get('/', (req, res) => {
   res.send("We are connected to localhost");
 });
 
-const port = process.env.PORT || 3030;
-
-app.listen(port, () => {
-  console.log(`Backend app started on ${port}`);
-});
+module.exports = app;

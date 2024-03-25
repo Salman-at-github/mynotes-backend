@@ -1,10 +1,7 @@
-const express = require('express');
-const router = express.Router();
 const userModel = require('../models/User');
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const decodeUser = require('../middleware/decodeUser');
 const OTPModel = require('../models/OTP');
 const { generateOTP, sendOTP, sendErrorResponse } = require('../utils/helpers');
 
@@ -59,12 +56,12 @@ const signUp = async (req, res) => {
       const foundUser = await userModel.findOne({ email });
 
       if (!foundUser) {
-        return sendErrorResponse(res, 400, "Please enter the correct email as no person with entered email was found");
+        return sendErrorResponse(res, 404, "Please enter the correct email as no person with entered email was found");
       }
 
       const passCompare = await bcrypt.compare(password, foundUser.password);
       if (!passCompare) {
-        return sendErrorResponse(res, 400, "Please enter the correct password");
+        return sendErrorResponse(res, 401, "Please enter the correct password");
       }
 
       const userIDPayload = {
