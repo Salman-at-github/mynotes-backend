@@ -40,7 +40,7 @@ const addNote = async (req, res) => {
           title, description, tag, user: req.user.id //user ID decoded from jwt using mwr
       });
       const savedNote = await newNote.save();
-      res.status(200).json(savedNote)
+      res.status(201).json(savedNote)
   } catch (error) {
       console.error(error.message);
   }
