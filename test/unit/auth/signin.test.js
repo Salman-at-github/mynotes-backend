@@ -1,14 +1,27 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../../app')
-const server = require('../../../server')
+const server = require('../../../server');
+const User = require('../../../models/User');
+const bcrypt = require('bcryptjs');
 describe('POST /api/v1/auth/signin', () => {
+  let user;
+    //before test, directly create a user in db so that we can Log that user in
     beforeAll(async () => {
       // Connect to your database here
       await mongoose.connect(process.env.MONGO_URL);
+
+      const fakeSalt = await bcrypt.genSalt();
+      const hashPass = await bcrypt.hash("Password", fakeSalt)
+      const newUser = new User({name : "Tester", email : "something@gmail.com", password: hashPass});
+      await newUser.save();
+      user = newUser;
     });
   
+
+    //after tests, delete the user and discon
     afterAll(async () => {
+      await user.remove();
       await mongoose.connection.close();
       server.close(); 
     });
@@ -17,8 +30,8 @@ describe('POST /api/v1/auth/signin', () => {
       const response = await request(app)
         .post('/api/v1/auth/signin')
         .send({
-          email: 'salmankps2001@gmail.com',
-          password: 'Password'
+          email: 'something@gmail.com',
+          password: "Password"
         });
   
       expect(response.status).toBe(200);
@@ -31,7 +44,7 @@ describe('POST /api/v1/auth/signin', () => {
       const response = await request(app)
       .post('/api/v1/auth/signin')
       .send({
-        email : "Nono@gmail.com", 
+        email : "Nono@gmail.com",  //a non existant email
         password : "Nothing here"
       });
       expect(response.status).toBe(404);
@@ -40,7 +53,7 @@ describe('POST /api/v1/auth/signin', () => {
       const response = await request(app)
       .post('/api/v1/auth/signin')
       .send({
-        email : "salmankps2001@gmail.com", 
+        email : "something@gmail.com", 
         password : "Wrong pass here"
       });
       expect(response.status).toBe(401);

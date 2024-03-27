@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { body } = require("express-validator");
 const decodeUser = require("../middleware/decodeUser");
+
 const {
   signUp,
   signIn,
@@ -12,38 +12,28 @@ const {
   resetPassword,
 } = require("../controllers/authController");
 
-router.post(
-  "/signup",
-  [
-    body("email", "Enter a valid email").isEmail(),
-    body("name", "Enter a valid name (min 3 chars)").isLength({ min: 2 }),
-    body("password", "Password must be min 8 chars").isLength({ min: 8 }),
-  ],
-  signUp
-);
+const {
+  validateSignup,
+  validateLogin,
+  validateEmail,
+  validateOTP,
+  validateResetPass,
+  handleValidationErrors,
+} = require("../middleware/validation");
 
-router.post(
-  "/signin",
-  [
-    body("email", "Enter a valid email").isEmail(),
-    body("password", "Password cannot be blank!").exists(),
-  ],
-  signIn
-);
+router.post("/signup", validateSignup, handleValidationErrors, signUp);
 
-router.post(
-  "/sendotp",
-  [body("email", "Enter a valid email").isEmail()],
-  sendOTPEmail
-);
+router.post("/signin", validateLogin, handleValidationErrors, signIn);
 
-router.post("/verifyotp", verifyOTP);
+router.post("/sendotp", validateEmail, handleValidationErrors, sendOTPEmail);
+
+router.post("/verifyotp", validateOTP, handleValidationErrors, verifyOTP);
 
 router.get("/user/details", decodeUser, getUserDetails);
 
 //sentOTP again for pass reset
-router.post("/sendotpagain", resendOTPEmail);
+router.post("/sendotpagain", validateEmail, handleValidationErrors, resendOTPEmail);
 
-router.post("/resetpassword", resetPassword);
+router.post("/resetpassword", validateResetPass, handleValidationErrors, resetPassword);
 
 module.exports = router;

@@ -6,6 +6,7 @@ const createRateLimiter = require('./middleware/rateLimiter');
 
 const mongoose = require('mongoose');
 const connectToMongo = require('./db');
+const errorHandler = require('./middleware/errorHandler');
 
 connectToMongo();
 
@@ -34,8 +35,8 @@ const notesRateLimiter = createRateLimiter(1, 20, "You have exceeded your 20 req
 app.use('/api/v1/notes', notesRateLimiter);
 app.use('/api/v1/notes', require('./routes/notes'));
 
-app.get('/', (req, res) => {
-  res.send("We are connected to localhost");
-});
+// Global error handling middleware
+app.use(errorHandler);
+
 
 module.exports = app;

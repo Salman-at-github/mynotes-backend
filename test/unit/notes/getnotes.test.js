@@ -2,28 +2,41 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../../app'); // path to your index file
 const server = require('../../../server');
+const User = require('../../../models/User');
+const bcrypt = require('bcryptjs');
+const Notes = require('../../../models/Notes');
+
 
 describe('GET /api/v1/notes/get', () => {
+  let user;
   let token;
+  let createdNote;
 
+  //before tests,create a user, login, get the authtoken from login api
   beforeAll(async () => {
     // Connect to your database here
     await mongoose.connect(process.env.MONGO_URL);
 
+    const fakeSalt = await bcrypt.genSalt();
+    const hashPass = await bcrypt.hash("Password", fakeSalt)
+    const newUser = new User({name : "Tester", email : "testuser@gmail.com", password: hashPass});
+    await newUser.save();
+    user = newUser;
     // Log in the test user to get a JWT token
     const loginResponse = await request(app)
       .post('/api/v1/auth/signin')
-      .send({ email: 'salmankps2001@gmail.com', password: 'Password' });
+      .send({ email: 'testuser@gmail.com', password: 'Password' });
 
     // Save the JWT token
-    console.log(loginResponse.body)
     token = loginResponse.body.authtoken;
   });
-
-  afterAll(async () => {
-    await mongoose.connection.close();
-    server.close(); 
-  });
+//after tests, delete the user, note and end the connection
+afterAll(async () => {
+  await user.remove();
+  await Notes.findByIdAndDelete(createdNote?._id);
+  await mongoose.connection.close();
+  server.close(); 
+});
 
   it('fetches the notes', async () => {
     const response = await request(app)

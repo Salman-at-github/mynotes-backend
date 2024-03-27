@@ -43,7 +43,7 @@ const generateOTP = () => {
   };
 
   const sendErrorResponse = (res, statusCode, error) => {
-    res.status(statusCode).json({ success: false, error: error.message || error });
+    return res.status(statusCode).json({ success: false, error: error.message || error });
   };
   
 

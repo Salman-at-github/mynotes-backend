@@ -7,11 +7,6 @@ const { generateOTP, sendOTP, sendErrorResponse } = require('../utils/helpers');
 
 const signUp = async (req, res) => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return sendErrorResponse(res, 400, errors.array());
-      }
-
       const match = await userModel.findOne({ email: req.body.email });
       if (match) {
         return sendErrorResponse(res, 409, "A user with the same email already exists. Please use a different one.");
@@ -40,18 +35,12 @@ const signUp = async (req, res) => {
       return;
   
     } catch (error) {
-      console.error(error.message);
-      sendErrorResponse(res, 500, "Internal Server Error");
+      return sendErrorResponse(res, 500, error.message);
     }
   }
 
   const signIn = async (req, res) => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return sendErrorResponse(res, 400, errors.array());
-      }
-
       const { email, password } = req.body;
       const foundUser = await userModel.findOne({ email });
 
@@ -74,8 +63,7 @@ const signUp = async (req, res) => {
       res.status(200).json({ success: true, authtoken });
 
     } catch (error) {
-      console.error(error.message);
-      sendErrorResponse(res, 500, "Internal Server Error");
+      return sendErrorResponse(res, 500, error.message)
     }
   }
 
@@ -91,11 +79,10 @@ const signUp = async (req, res) => {
         res.status(200).json({ success: true, message: "OTP sent successfully!" });
   
       } else {
-        sendErrorResponse(res, 401, "User exists!");
+        return sendErrorResponse(res, 401, "User exists!");
       }
     } catch (error) {
-      console.log(error);
-      sendErrorResponse(res, 500, "Internal Server Error");
+      return sendErrorResponse(res, 500, error.message)
     }
   }
 
@@ -105,10 +92,10 @@ const signUp = async (req, res) => {
       const foundUserOTP = await OTPModel.findOne({ email });
   
       if (!foundUserOTP) {
-        sendErrorResponse(res, 404, "Can't verify OTP if not sent in the first place!");
+        return sendErrorResponse(res, 404, "Can't verify OTP if not sent in the first place!");
       } else {
         if (OTP !== foundUserOTP.OTP) {
-          sendErrorResponse(res, 401, "Incorrect OTP");
+          return sendErrorResponse(res, 401, "Incorrect OTP");
         } else {
           foundUserOTP.verified = true;
           await foundUserOTP.save();
@@ -116,22 +103,21 @@ const signUp = async (req, res) => {
         }
       }
     } catch (error) {
-      console.log(error);
-      sendErrorResponse(res, 500, "Internal Server Error");
+      return sendErrorResponse(res, 500, error.message)
     }
   }
 
   const getUserDetails = async(req,res)=>{
-    const {id} = req.user; //form decodeUser mwr
+    const {id} = req.user; //req.user comes from the jwt
     try {
         const foundUser = await userModel.findOne({_id:id}).select("-password");
         if(! foundUser){
-            res.status(404).send("User Not found!")
+            return sendErrorResponse(res, 404, "User not found");
         } else {
             res.status(200).json(foundUser)
         }
     } catch (error) {
-        console.log(error)
+      return sendErrorResponse(res, 500, error.message)
     }
 }
 
@@ -141,7 +127,7 @@ const resendOTPEmail = async(req,res)=>{
     try {
         const foundUser = await userModel.findOne({email:email});
         if(!foundUser){
-            res.status(404).send("User does not exist. Please sign up!")
+            return sendErrorResponse(res, 401, "User does not exist. Please sign up!")
         } else {
             const gotOTP = generateOTP();
             await sendOTP(email, gotOTP);
@@ -158,7 +144,7 @@ const resendOTPEmail = async(req,res)=>{
             res.status(200).json({success});
         }
     } catch (error) {
-        console.log(error)
+      return sendErrorResponse(res, 500, error.message)
     }
 }
 
@@ -167,8 +153,8 @@ const resetPassword =  async(req,res)=>{
     let success = false;
     try {
         const userExists = await userModel.findOne({email:email});
-        const userOTPsent = await OTPModel.findOne({email:email})
         if(userExists){
+            const userOTPsent = await OTPModel.findOne({email:email})
             if(userOTPsent){
                 if(userOTPsent.verified){
                     const salts = await bcrypt.genSalt();
@@ -180,16 +166,16 @@ const resetPassword =  async(req,res)=>{
                     //remove the otp after changing pass
                     await userOTPsent.remove();
                 } else {
-                    res.status(401).json({success,error:"OTP not verified so can't change password"})
+                    return sendErrorResponse(res, 401, "OTP not verified so can't change password")
                 }
             } else {
-                res.status(401).json({success,error:"Can't change pass as OTP not sent!"})
+              return sendErrorResponse(res, 401, "Can't change pass as OTP not sent!")
             }
         } else {
-            res.status(404).json({success,error:"User not found, can't change password."})
+          return sendErrorResponse(res, 404, "User not found, can't change password.")
         }
     } catch (error) {
-        
+    return sendErrorResponse(res, 500, error.message)
     }
 }
 

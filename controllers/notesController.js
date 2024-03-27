@@ -1,6 +1,6 @@
-const { validationResult } = require("express-validator");
 const Notes = require("../models/Notes");
 const { structurePaginator } = require("../utils/structurePaginator");
+const { sendErrorResponse } = require("../utils/helpers");
 
 const getNotes = async (req, res) => {
     try {
@@ -24,25 +24,20 @@ const getNotes = async (req, res) => {
       // Respond with the paginated posts
       res.json(paginatedResults);
     } catch (error) {
-      console.error('Error in fetching posts:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      return sendErrorResponse(res, 500, error.message)
     }
   };
 const addNote = async (req, res) => {
   try {
       const { title, description, tag } = req.body;
-      // if error found in data sent, return the error with bad status code 400
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-          return res.status(400).json({ errors: errors.array() })
-      };
+      
       const newNote = new Notes({
           title, description, tag, user: req.user.id //user ID decoded from jwt using mwr
       });
       const savedNote = await newNote.save();
       res.status(201).json(savedNote)
   } catch (error) {
-      console.error(error.message);
+    return sendErrorResponse(res, 500, error.message)
   }
 }
 
@@ -59,15 +54,16 @@ const updateNote = async (req, res) => {
       // find the old note to be updated (/:id fetched here)
       let oldNote = await Notes.findById(req.params.id);
       if (!oldNote) {
-          return res.status(404).send("Old not not found. Can't update")
+          return sendErrorResponse(res, 404, "Old not not found. Can't update")
       };
       if (oldNote.user.toString() !== req.user.id) {//if notes's user's id != id in api/update
-          return res.status(401).send("You can't update this note. You are not authorized")
+        return sendErrorResponse(res, 401, "You can't update this note. You are not authorized")
       };
       oldNote = await Notes.findByIdAndUpdate(req.params.id, { $set: updatedNote }, { new: true }); //The $set operator is used to update the value of a field in a MongoDB document. It takes an object as its value, with each key-value pair representing a field and its new value.
       res.status(200).json(oldNote)
   } catch (error) {
-      console.error(error.message);
+    return sendErrorResponse(res, 500, error.message)
+
   };
 }
 
@@ -76,17 +72,17 @@ const deleteNote =  async (req, res) => {
       // find the old note to be deleted (/:id fetched here)
       let oldNote = await Notes.findById(req.params.id);
       if (!oldNote) {
-          return res.status(404).send("Old not not found. Can't Delete")
+          return sendErrorResponse(res, 404, "Old not not found. Can't Delete")
       };
 
       // check if user is the owner of the note or not and then delete
       if (oldNote.user.toString() !== req.user.id) {
-          return res.status(401).send("You can't delete this note. You are not authorized")
+        return sendErrorResponse(res, 401, "You can't delete this note. You are not authorized")
       };
       await Notes.findByIdAndDelete(req.params.id);
       res.status(200).json({ "Success": "Note deleted successfully bruhhh" })
   } catch (error) {
-      console.error(error.message);
+    return sendErrorResponse(res, 500, error.message)
   };
 }
 
@@ -114,8 +110,7 @@ const searchNotes = async (req, res) => {
 
     res.json({ notes, totalResults }); // Include total results for pagination display
   } catch (error) {
-    console.error('Error in searching notes:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    return sendErrorResponse(res, 500, error.message)
   }
 };
 
