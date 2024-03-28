@@ -5,11 +5,11 @@ const SMTPPASS = process.env.SMTP_PASS;
 const SMTPPORT = process.env.SMTP_PORT;
 const FROMEMAIL = process.env.FROM_EMAIL;
 
-const generateOTP = () => {
+const generateOTP = (len = 6) => {
     const digits = '0123456789';
     let OTP = '';
   
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < len; i++) {
       OTP += digits[Math.floor(Math.random() * digits.length)];
     }
   
@@ -46,7 +46,6 @@ const generateOTP = () => {
     return res.status(statusCode).json({ success: false, error: error.message || error });
   };
   
-
 module.exports = {
     generateOTP,
     sendOTP,
