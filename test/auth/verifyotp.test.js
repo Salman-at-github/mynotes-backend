@@ -1,8 +1,8 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../../../app')
-const server = require('../../../server');
-const OTPModel = require('../../../models/OTP');
+const app = require('../../app')
+const server = require('../../server');
+const OTPModel = require('../../models/OTP');
 
 describe('POST /api/v1/auth/verifyotp',()=>{
 

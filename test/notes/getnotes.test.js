@@ -1,10 +1,10 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../../../app'); // path to your index file
-const server = require('../../../server');
-const User = require('../../../models/User');
+const app = require('../../app'); // path to your index file
+const server = require('../../server');
+const User = require('../../models/User');
 const bcrypt = require('bcryptjs');
-const Notes = require('../../../models/Notes');
+const Notes = require('../../models/Notes');
 
 
 describe('GET /api/v1/notes/get', () => {
